@@ -1,0 +1,35 @@
+name: quan_ly_tai_lieu_hoc_tap
+description: "Ứng dụng quản lý tài liệu học tập theo kiến trúc Cashew"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Persistence & Database (Cashew Stack)
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.5.18
+  path_provider: ^2.1.1
+  path: ^1.8.3
+
+  # Google APIs
+  googleapis: ^11.4.0
+
+  # Utilities
+  file_picker: ^8.1.7
+  uuid: ^4.2.1
+  provider: ^6.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  drift_dev: ^2.14.1
+  build_runner: ^2.4.7
+
+flutter:
+  uses-material-design: true
