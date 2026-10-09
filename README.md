@@ -112,6 +112,26 @@ Nếu chỉ lưu dữ liệu trên thiết bị hoặc máy chủ vật lý nộ
 Chọn **Public Cloud theo mô hình serverless**, sử dụng hệ sinh thái Firebase:
 
 - **Firebase Authentication**: đăng nhập Google, quản lý phiên và UID.
+
+
+## Đóng góp của Nguyễn Khắc Minh Hiếu
+
+### Mô tả công việc
+
+- Xây dựng và hoàn thiện slide thuyết trình cho phần "Phân tích và lập phương án tích hợp Cloud" sử dụng trong báo cáo đồ án và thuyết trình trước giảng viên.
+- Thực hiện tích hợp Firebase vào dự án theo phương án chung của nhóm, nhằm hỗ trợ đồng bộ dữ liệu và truy cập đa thiết bị.
+
+### Nội dung đã thực hiện
+
+- Slide thuyết trình: soạn nội dung phân tích, kiến trúc hệ thống, luồng dữ liệu và đề xuất giải pháp tích hợp Cloud; trình bày rõ mục tiêu, phương án và kết luận để sử dụng trong phần thuyết trình môn học.
+- Tích hợp Firebase: thực hiện cấu hình ban đầu theo phương án nhóm và tích hợp mã khởi tạo Firebase vào dự án để hỗ trợ chức năng đăng nhập và đồng bộ dữ liệu (theo phạm vi và nội dung đã thống nhất với nhóm). Mô tả ở đây giữ ở mức tổng quát và trung thực dựa trên nội dung dự án.
+
+### Kết quả bàn giao
+
+- Slide thuyết trình hoàn thiện và đã nộp/chia sẻ trong nhóm để dùng cho buổi báo cáo.
+- Các thay đổi cấu hình/khởi tạo Firebase đã được thực hiện trong mã nguồn theo phương án nhóm (các chi tiết kỹ thuật và đường dẫn tệp nếu cần sẽ được cập nhật khi có bằng chứng hoặc chỉ dẫn bổ sung).
+
+> Ghi chú: phần mô tả trên chỉ ghi nhận phạm vi công việc và kết quả bàn giao ở mức tổng quát, không nêu chi tiết thông tin bảo mật, khóa API hay đường dẫn riêng tư. Nếu bạn cung cấp đường dẫn slide hoặc tệp cấu hình cụ thể, tôi có thể cập nhật README để tham chiếu trực tiếp.
 - **Cloud Firestore**: lưu metadata và dữ liệu tài liệu.
 - **Cloud Storage for Firebase**: lưu nội dung tệp đính kèm.
 - **Firebase Security Rules**: phân quyền theo `request.auth.uid`.
