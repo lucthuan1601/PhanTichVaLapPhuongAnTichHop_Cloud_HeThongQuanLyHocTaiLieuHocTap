@@ -85,39 +85,55 @@ Phương án hoàn thiện cần bổ sung **Firebase Cloud Storage**:
 
 ## 4. Hạn chế của mô hình truyền thống
 
-Nếu chỉ lưu dữ liệu trên thiết bị hoặc máy chủ vật lý nội bộ, hệ thống gặp các vấn đề sau:
+Mô hình truyền thống ở đây là lưu dữ liệu trên thiết bị cá nhân hoặc máy chủ vật lý nội bộ. Với ứng dụng quản lý tài liệu học tập, mô hình này gặp các hạn chế sau:
 
-| Hạn chế | Tác động |
-|---|---|
-| Lưu trữ phụ thuộc thiết bị | Mất thiết bị hoặc hỏng ổ đĩa có thể làm mất dữ liệu. |
-| Không truy cập từ xa | Người dùng khó xem tài liệu khi đổi máy hoặc ngoài mạng nội bộ. |
-| Mở rộng thủ công | Phải mua thêm ổ đĩa, máy chủ và cấu hình lại hệ thống khi dữ liệu tăng. |
-| Sao lưu chưa tự động | Dễ quên sao lưu hoặc chỉ có một bản sao dự phòng. |
-| Xác thực phân tán | Khó quản lý tài khoản, phiên đăng nhập và quyền truy cập. |
-| Chi phí vận hành cố định | Phải duy trì phần cứng, điện, mạng và bảo trì ngay cả khi ít sử dụng. |
-| Điểm lỗi đơn | Một máy chủ hoặc router gặp sự cố có thể làm toàn hệ thống ngừng hoạt động. |
+| Hạn chế | Biểu hiện | Tác động đến hệ thống |
+|---|---|---|
+| Lưu trữ phụ thuộc thiết bị | Dữ liệu và tệp chỉ nằm trong SQLite/IndexedDB hoặc ổ đĩa của một máy | Mất thiết bị, hỏng ổ đĩa hoặc xóa dữ liệu ứng dụng là mất toàn bộ tài liệu |
+| Không truy cập từ xa | `filePath` chỉ là đường dẫn cục bộ | Người dùng không xem được tài liệu khi đổi máy hoặc ở ngoài mạng nội bộ |
+| Mở rộng thủ công | Phải mua thêm ổ đĩa, máy chủ và cấu hình lại | Khó đáp ứng khi số người dùng và dung lượng tăng |
+| Sao lưu chưa tự động | Chỉ có một bản sao hoặc phải sao lưu thủ công | Dễ quên sao lưu, khó khôi phục khi có sự cố |
+| Xác thực phân tán | Tự quản lý tài khoản, phiên đăng nhập và quyền truy cập | Dễ sai sót bảo mật, tốn công xây dựng và bảo trì |
+| Chi phí vận hành cố định | Phải duy trì phần cứng, điện, mạng và bảo trì | Tốn kém dù ít người dùng, không phù hợp với ứng dụng quy mô nhóm |
+| Điểm lỗi đơn | Một máy chủ hoặc router gặp sự cố | Toàn bộ hệ thống có thể ngừng hoạt động |
+
+**Nhận xét:** các hạn chế trên đều thể hiện ở phiên bản hiện tại của ứng dụng. Metadata đã được đồng bộ lên Firestore, nhưng tệp đính kèm vẫn nằm cục bộ nên hạn chế "không truy cập từ xa" và "lưu trữ phụ thuộc thiết bị" chưa được giải quyết hết. Đây là lý do cần một phương án Cloud hoàn chỉnh.
 
 ## 5. Lựa chọn mô hình Cloud
 
 ### 5.1. So sánh mô hình triển khai
 
-| Mô hình | Ưu điểm | Hạn chế | Mức phù hợp |
+| Tiêu chí | Public Cloud | Private Cloud | Hybrid Cloud |
 |---|---|---|---|
-| Public Cloud | Triển khai nhanh, dịch vụ managed, mở rộng linh hoạt, trả theo mức sử dụng | Phụ thuộc nhà cung cấp và Internet | **Phù hợp nhất** |
-| Private Cloud | Kiểm soát hạ tầng và dữ liệu cao | Chi phí đầu tư, vận hành và nhân sự lớn | Chưa phù hợp với ứng dụng sinh viên |
-| Hybrid Cloud | Kết hợp dữ liệu nội bộ và Cloud, linh hoạt với dữ liệu nhạy cảm | Kiến trúc và đồng bộ phức tạp | Có thể dùng ở giai đoạn mở rộng |
+| Khái niệm | Hạ tầng do nhà cung cấp quản lý, nhiều khách hàng dùng chung | Hạ tầng dành riêng cho một tổ chức | Kết hợp hạ tầng nội bộ/Private Cloud với Public Cloud |
+| Ưu điểm | Triển khai nhanh, dịch vụ managed, mở rộng linh hoạt, trả theo mức sử dụng | Kiểm soát hạ tầng và dữ liệu cao, tùy biến sâu | Linh hoạt, giữ dữ liệu nhạy cảm nội bộ, tận dụng Cloud cho phần còn lại |
+| Hạn chế | Phụ thuộc nhà cung cấp và Internet | Chi phí đầu tư, vận hành và nhân sự lớn | Kiến trúc và đồng bộ dữ liệu phức tạp |
+| Chi phí | Thấp ban đầu, có hạn mức miễn phí | Cao | Trung bình đến cao |
+| Công sức vận hành | Thấp | Cao | Cao |
+| Khả năng mở rộng | Tự động, gần như không giới hạn | Giới hạn theo phần cứng sở hữu | Mở rộng phần Cloud, phần nội bộ vẫn giới hạn |
+| Mức phù hợp | **Phù hợp nhất** | Chưa phù hợp với ứng dụng sinh viên | Có thể dùng ở giai đoạn mở rộng |
 
 ### 5.2. Phương án đề xuất
 
 Chọn **Public Cloud theo mô hình serverless**, sử dụng hệ sinh thái Firebase:
 
-- **Firebase Authentication**: đăng nhập Google, quản lý phiên và UID.
-- **Cloud Firestore**: lưu metadata và dữ liệu tài liệu.
-- **Cloud Storage for Firebase**: lưu nội dung tệp đính kèm.
-- **Firebase Security Rules**: phân quyền theo `request.auth.uid`.
-- **Firebase Console/CLI**: quản trị project, theo dõi và triển khai rules.
+| Nhu cầu | Dịch vụ Cloud | Vai trò |
+|---|---|---|
+| Xác thực người dùng | **Firebase Authentication** | Đăng nhập Google, quản lý phiên và UID |
+| Lưu metadata tài liệu | **Cloud Firestore** | Lưu dữ liệu theo `users/{uid}/documents` |
+| Lưu tệp đính kèm | **Cloud Storage for Firebase** | Lưu nội dung tệp tại `users/{uid}/files` |
+| Phân quyền truy cập | **Firebase Security Rules** | Chỉ cho phép khi `request.auth.uid == userId` |
+| Quản trị và triển khai | **Firebase Console/CLI** | Quản lý project, theo dõi và triển khai rules |
 
-Firebase được chọn vì ứng dụng Flutter đã có cấu hình `firebase_options.dart`, `google-services.json`, Firebase Authentication và Cloud Firestore. So với tự triển khai AWS S3/Azure Blob cùng backend riêng, Firebase giúp giảm số lượng thành phần phải vận hành. Nếu cần mở rộng doanh nghiệp, Cloud Storage có thể được thay thế hoặc kết nối với Google Cloud Storage thông qua backend có kiểm soát.
+Lý do lựa chọn:
+
+- Ứng dụng Flutter đã có `firebase_options.dart`, `google-services.json`, Firebase Authentication và Cloud Firestore nên chi phí tích hợp thấp.
+- Không cần tự vận hành máy chủ, cân bằng tải hay hệ thống xác thực riêng.
+- Có hạn mức miễn phí (Spark plan), phù hợp với ứng dụng học tập quy mô nhóm.
+- So với tự triển khai AWS S3/Azure Blob cùng backend riêng, Firebase có ít thành phần phải vận hành hơn.
+- Private Cloud tốn kém và không cần thiết ở quy mô này. Hybrid Cloud chỉ nên cân nhắc khi có dữ liệu nhạy cảm bắt buộc lưu nội bộ.
+
+Nếu cần mở rộng cho doanh nghiệp, Cloud Storage có thể được thay thế hoặc kết nối với Google Cloud Storage thông qua backend có kiểm soát.
 
 ## 6. Kiến trúc tích hợp Cloud
 
@@ -285,9 +301,3 @@ Public Cloud với Firebase là phương án phù hợp cho hệ thống quản 
 
 
 
-
-**Họ và tên:** Trần Văn Hồng Quân
-- **Nhiệm vụ thực hiện:**
-  - Phân tích hạn chế của hạ tầng truyền thống.
-  - So sánh các mô hình Public Cloud, Private Cloud và Hybrid Cloud.
-  - Đề xuất mô hình cùng dịch vụ Cloud phù hợp với hệ thống.
