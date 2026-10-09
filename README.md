@@ -2,7 +2,7 @@
 
 ## 1. Mục tiêu
 
-Ứng dụng quản lý tài liệu học tập được xây dựng bằng Flutter, cho phép người dùng đăng nhập bằng Google, thêm/sửa/xóa tài liệu, tìm kiếm và lọc tài liệu. Dữ liệu tài liệu được lưu cục bộ để ứng dụng có thể hoạt động nhanh trên thiết bị, đồng thời được đồng bộ lên Firebase để người dùng truy cập từ xa.
+Ứng dụng quản lý tài liệu học tập được xây dựng bằng Flutter, cho phép người dùng thêm/sửa/xóa tài liệu, tìm kiếm và lọc tài liệu. Hiện tại, metadata và đường dẫn tệp được lưu cục bộ; Firebase là phương án Cloud được đề xuất để người dùng có thể truy cập dữ liệu từ xa.
 
 Phương án Cloud hướng tới ba mục tiêu:
 
@@ -23,32 +23,52 @@ Phương án Cloud hướng tới ba mục tiêu:
 
 ## 3. Phân tích các thành phần cốt lõi
 
+Kiến trúc hiện tại được tổ chức theo hướng tách giao diện, nghiệp vụ và
+lưu trữ. Bốn thành phần chính có vai trò như sau:
+
+| Thành phần | Công nghệ hiện tại | Vai trò |
+|---|---|---|
+| Frontend | Flutter | Hiển thị giao diện, nhận thao tác và phản hồi trạng thái cho người dùng. |
+| Backend/Service | `DocumentRepository`, `AuthService`, `SyncService`, `DriveService` | Đóng gói nghiệp vụ tài liệu, xác thực và các điểm tích hợp dịch vụ bên ngoài. |
+| Database | Drift trên SQLite | Lưu metadata tài liệu, hỗ trợ truy vấn, tìm kiếm và cập nhật trong ứng dụng. |
+| File Storage | Tệp cục bộ; Google Drive là hướng tích hợp | Lưu đường dẫn tệp đính kèm ở local và chuẩn bị API upload lên Cloud. |
+
 ### 3.1. Frontend
 
-Frontend là ứng dụng Flutter đa nền tảng, hiện có các màn hình và thành phần chính:
+Frontend là ứng dụng Flutter đa nền tảng. Lớp giao diện hiện có các màn hình
+và thành phần chính:
 
-- `lib/main.dart`: khởi tạo Flutter, Firebase, database và điều hướng theo trạng thái đăng nhập.
+- `lib/main.dart`: khởi tạo Flutter, database và màn hình chính.
 - `lib/pages/document_list_page.dart`: hiển thị danh sách, tìm kiếm, lọc, sửa và xóa tài liệu.
 - `lib/pages/document_form_page.dart`: nhập tiêu đề, mô tả, loại tài liệu và tệp đính kèm.
-- `lib/services/auth_service.dart`: đóng gói đăng nhập Google và đăng xuất.
-- `lib/repositories/document_repository.dart`: lớp trung gian giữa giao diện, database cục bộ và Firestore.
+- `lib/models/document_struct.dart`: định nghĩa loại tài liệu và mô hình dữ liệu dùng ở giao diện.
+- `lib/repositories/document_repository.dart`: lớp trung gian giữa giao diện và database.
 
-Frontend chịu trách nhiệm hiển thị và nhận thao tác người dùng. Các truy vấn database và lời gọi SDK Cloud được tách khỏi widget thông qua service/repository, giúp dễ bảo trì và kiểm thử.
+Frontend chỉ nên chịu trách nhiệm hiển thị và nhận thao tác người dùng.
+Các truy vấn database và lời gọi dịch vụ được tách khỏi widget thông qua
+repository/service, giúp dễ bảo trì và kiểm thử.
 
 ### 3.2. Backend và tầng dịch vụ
 
-Ứng dụng hiện không có máy chủ backend riêng. Các chức năng backend được cung cấp bởi Firebase:
+Ứng dụng hiện chưa có máy chủ backend riêng. Nghiệp vụ phía sau giao diện
+được tổ chức trong các lớp service/repository:
 
-- **Firebase Authentication** xác thực tài khoản Google, cấp Firebase UID và token.
-- **Cloud Firestore** lưu metadata của tài liệu theo UID người dùng.
-- **Firebase Security Rules** kiểm soát quyền đọc/ghi.
-- `AuthService` và `DocumentRepository` là lớp tích hợp phía ứng dụng, che giấu chi tiết SDK Firebase khỏi giao diện.
+- **`DocumentRepository`** thực hiện tạo, đọc, tìm kiếm, lọc và xóa tài liệu.
+- **`AuthService`** định nghĩa điểm tích hợp cho đăng nhập Google và đăng xuất.
+- **`DriveService`** đóng gói thao tác upload tệp và database lên Google Drive
+  thông qua `googleapis`.
+- **`SyncService`** là điểm mở rộng cho đồng bộ dữ liệu; hiện chưa thực hiện
+  đồng bộ tự động.
 
-Mô hình serverless này phù hợp với ứng dụng nhóm nhỏ vì không cần tự vận hành máy chủ, cân bằng tải hoặc hệ thống xác thực riêng.
+Việc tách các lớp này giúp thay đổi nhà cung cấp Cloud hoặc bổ sung backend
+mà không phải viết lại giao diện. Khi triển khai thật, cần bổ sung cơ chế
+xác thực, xử lý lỗi, retry có giới hạn và phân quyền ở dịch vụ Cloud.
 
 ### 3.3. Database
 
-Database cục bộ sử dụng Drift/SQLite trên Android/iOS và IndexedDB trên Web. Bảng `Documents` gồm:
+Database hiện tại sử dụng Drift với SQLite trên nền tảng native. Drift cung
+cấp API kiểu Dart, stream theo dõi thay đổi và sinh mã truy cập bảng. Bảng
+`Documents` gồm:
 
 | Trường | Ý nghĩa |
 |---|---|
@@ -60,28 +80,34 @@ Database cục bộ sử dụng Drift/SQLite trên Android/iOS và IndexedDB tr�
 | `createdAt` | Thời điểm tạo |
 | `updatedAt` | Thời điểm cập nhật |
 
-Trên Cloud Firestore, dữ liệu được lưu theo cấu trúc:
+`DocumentRepository.watchDocuments()` thực hiện sắp xếp theo thời điểm cập
+nhật, lọc theo loại tài liệu và tìm kiếm không phân biệt dấu trong tiêu đề.
+Database local giúp ứng dụng phản hồi nhanh và vẫn đọc được metadata khi
+không có mạng.
 
-```text
-users/{uid}/documents/{documentId}
-```
-
-Cách tổ chức này tạo vùng dữ liệu riêng cho từng người dùng và phù hợp với luật:
-
-```text
-request.auth.uid == userId
-```
+Nếu bổ sung database Cloud, dữ liệu cần được gắn với danh tính người dùng,
+chẳng hạn theo cấu trúc `users/{uid}/documents/{documentId}`. Luật đọc/ghi
+phải kiểm tra người dùng đã đăng nhập và UID trong đường dẫn trùng với UID
+trong phiên hiện tại.
 
 ### 3.4. File Storage
 
-Ở phiên bản hiện tại, nội dung tài liệu và tệp đính kèm vẫn được lưu cục bộ; Firestore chỉ lưu `filePath` và metadata. Đây là giới hạn quan trọng: đường dẫn cục bộ không thể dùng để tải tệp từ một thiết bị khác.
+Ở phiên bản hiện tại, bảng `Documents` chỉ lưu `filePath`; nội dung tệp
+đính kèm vẫn nằm trên thiết bị. Vì vậy, đường dẫn local không thể dùng để
+tải tệp từ thiết bị khác và dữ liệu có thể mất khi tệp bị di chuyển hoặc
+thiết bị gặp sự cố.
 
-Phương án hoàn thiện cần bổ sung **Firebase Cloud Storage**:
+Project đã có `DriveService` để chuẩn bị upload dữ liệu lên Google Drive:
 
-- Tệp được tải lên `users/{uid}/files/{documentId}/{fileName}`.
-- Firestore lưu `storagePath`, tên tệp, kích thước, MIME type và thời điểm tải lên.
-- Khi mở tài liệu, ứng dụng lấy URL hoặc tải tệp từ Cloud Storage.
-- Tệp cục bộ có thể được dùng làm cache offline.
+- `uploadAttachment()` nhận bytes, tên tệp và MIME type rồi tạo tệp trên Drive.
+- `uploadDatabase()` hỗ trợ upload file SQLite làm bản sao lưu.
+- `SyncService` có thể được mở rộng để đồng bộ metadata và tệp theo lịch.
+
+Để hoàn thiện file storage, cần lưu thêm ID/đường dẫn tệp Cloud, tên tệp,
+kích thước, MIME type và thời điểm upload trong database. Tệp local nên được
+giữ làm cache offline; khi mở tài liệu trên thiết bị khác, ứng dụng tải tệp
+từ Cloud về cache trước khi sử dụng. Dịch vụ Cloud cũng phải giới hạn quyền
+truy cập theo tài khoản và kiểm tra kích thước, MIME type trước khi upload.
 
 ## 4. Hạn chế của mô hình truyền thống
 
@@ -117,7 +143,7 @@ Chọn **Public Cloud theo mô hình serverless**, sử dụng hệ sinh thái F
 - **Firebase Security Rules**: phân quyền theo `request.auth.uid`.
 - **Firebase Console/CLI**: quản trị project, theo dõi và triển khai rules.
 
-Firebase được chọn vì ứng dụng Flutter đã có cấu hình `firebase_options.dart`, `google-services.json`, Firebase Authentication và Cloud Firestore. So với tự triển khai AWS S3/Azure Blob cùng backend riêng, Firebase giúp giảm số lượng thành phần phải vận hành. Nếu cần mở rộng doanh nghiệp, Cloud Storage có thể được thay thế hoặc kết nối với Google Cloud Storage thông qua backend có kiểm soát.
+Firebase được đề xuất vì phù hợp với Flutter và giúp giảm số lượng thành phần phải vận hành so với tự triển khai AWS S3/Azure Blob cùng backend riêng. Khi triển khai, nhóm cần bổ sung các file cấu hình Firebase, bật Authentication/Firestore và kết nối các service hiện tại với SDK tương ứng. Nếu cần mở rộng doanh nghiệp, Cloud Storage có thể được thay thế hoặc kết nối với Google Cloud Storage thông qua backend có kiểm soát.
 
 ## 6. Kiến trúc tích hợp Cloud
 
@@ -280,4 +306,4 @@ Nguyễn Khắc Minh Hiếu tổng hợp slide theo bố cục:
 
 ## 11. Kết luận
 
-Public Cloud với Firebase là phương án phù hợp cho hệ thống quản lý tài liệu học tập vì giảm công sức vận hành, hỗ trợ xác thực Google, cung cấp database thời gian thực và mở rộng được khi số lượng người dùng tăng. Kiến trúc hiện tại đã tích hợp Firebase Authentication và Firestore; bước hoàn thiện tiếp theo là chuyển tệp đính kèm từ đường dẫn cục bộ sang Cloud Storage, bổ sung Storage Rules, cơ chế đồng bộ khi offline và kiểm soát chi phí.
+Public Cloud với Firebase là phương án phù hợp cho hệ thống quản lý tài liệu học tập vì giảm công sức vận hành, hỗ trợ xác thực Google, cung cấp database thời gian thực và mở rộng được khi số lượng người dùng tăng. Kiến trúc hiện tại đang ưu tiên database local; bước hoàn thiện tiếp theo là tích hợp Firebase Authentication/Firestore, chuyển tệp đính kèm từ đường dẫn cục bộ sang Cloud Storage, bổ sung Storage Rules, cơ chế đồng bộ khi offline và kiểm soát chi phí.
