@@ -281,7 +281,7 @@ Khi bổ sung Cloud Storage, cần triển khai Storage Rules tương tự và k
 
 ## 10. Nội dung slide đề xuất
 
-Nguyễn Khắc Minh Hiếu tổng hợp slide theo bố cục:
+Nguyễn Khắc Minh Hiếu tổng hợp slide theo bố cục   :
 
 1. Bối cảnh và hạn chế của mô hình lưu trữ truyền thống.
 2. Firebase là gì và các dịch vụ chính.
