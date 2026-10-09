@@ -281,3 +281,13 @@ Nguyễn Khắc Minh Hiếu tổng hợp slide theo bố cục:
 ## 11. Kết luận
 
 Public Cloud với Firebase là phương án phù hợp cho hệ thống quản lý tài liệu học tập vì giảm công sức vận hành, hỗ trợ xác thực Google, cung cấp database thời gian thực và mở rộng được khi số lượng người dùng tăng. Kiến trúc hiện tại đã tích hợp Firebase Authentication và Firestore; bước hoàn thiện tiếp theo là chuyển tệp đính kèm từ đường dẫn cục bộ sang Cloud Storage, bổ sung Storage Rules, cơ chế đồng bộ khi offline và kiểm soát chi phí.
+
+
+
+
+
+**Họ và tên:** Trần Văn Hồng Quân
+- **Nhiệm vụ thực hiện:**
+  - Phân tích hạn chế của hạ tầng truyền thống.
+  - So sánh các mô hình Public Cloud, Private Cloud và Hybrid Cloud.
+  - Đề xuất mô hình cùng dịch vụ Cloud phù hợp với hệ thống.
